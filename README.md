@@ -1,4 +1,80 @@
-# Hardhat Boilerplate
+# Rayls QA Challenge – Hardhat Boilerplate
+
+Fork do [Hardhat Boilerplate](https://github.com/NomicFoundation/hardhat-boilerplate) com **testes E2E do RaylsToken** para o QA Engineering Challenge (Rayls Network).
+
+## RaylsToken E2E – Como rodar
+
+1. **Configurar `.env`** (copie de `.env.example` e preencha):
+   - `RPC_URL` – Rayls Devnet: `https://devnet-rpc.rayls.com`
+   - `CHAIN_ID=123123`
+   - `PRIVATE_KEY_OWNER` – chave privada da conta Owner/Deployer fornecida pelo desafio
+
+2. **Testes na rede local (Hardhat):**
+   ```sh
+   npm run test:e2e
+   # ou
+   npx hardhat test test/RaylsToken.e2e.js
+   ```
+
+3. **Testes na Rayls Devnet** (pedido do desafio para validação final):
+   ```sh
+   npm run test:e2e:devnet
+   # ou
+   npx hardhat test test/RaylsToken.e2e.js --network rayls_devnet
+   ```
+   Se aparecer **error code: 522** (Invalid JSON-RPC response), é timeout/conexão com o RPC `devnet-rpc.rayls.com` (Cloudflare/servidor). Tente de outra rede, sem VPN, ou mais tarde; se persistir, informe ao recrutador e use o resultado dos testes locais (7 passing) como evidência.
+
+### Cenários cobertos pelos testes E2E
+
+- **1. Deployment & Ownership** – deploy do contrato e `owner()` igual ao deployer
+- **2. Access Control (Minting)** – Owner pode dar mint; não-owner não pode (revert)
+- **3. Allowance Flow (ERC20)** – approve + `transferFrom`, validação de saldos e allowance
+- **4. Token Destruction (Burn)** – burn de tokens e redução de `totalSupply`
+
+### Design dos testes
+
+- **Fixture:** um único `before()` faz o deploy do RaylsToken e configura Owner, User A e User B (com 3 signers locais ou criando User A/B e financiando com native token quando há só 1 conta).
+- **Helpers:** `getAddress(signer)` e `setupSigners()` para suportar rede local e devnet com uma única conta.
+
+---
+
+## Frontend – Como rodar
+
+**Importante:** todos os comandos Hardhat devem ser executados **de dentro da pasta do projeto** (`rayls-qa-challenge`). Se rodar na pasta pai (`challengeblockchain`), o Hardhat não encontra o `hardhat.config.js` e pode tentar instalar outra versão.
+
+1. **Entre na pasta do projeto:**
+   ```sh
+   cd rayls-qa-challenge
+   ```
+
+2. **Terminal 1 – subir o nó local (deixe rodando):**
+   ```sh
+   cd rayls-qa-challenge
+   npx hardhat node
+   ```
+   Espere aparecer "Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/".
+
+3. **Terminal 2 – fazer o deploy do Token (com o nó já rodando):**
+   ```sh
+   cd rayls-qa-challenge
+   npx hardhat run scripts/deploy.js --network localhost
+   ```
+
+4. **Terminal 3 – subir o frontend:**
+   ```sh
+   cd rayls-qa-challenge/frontend
+   npm install
+   npm start
+   ```
+   Abra **http://localhost:3000** e conecte o MetaMask em **localhost:8545** (Chain ID 31337).
+
+**Se aparecer "Cannot connect to the network localhost" (ECONNREFUSED 127.0.0.1:8545):** o nó não está rodando. Volte ao passo 2 e deixe `npx hardhat node` aberto no Terminal 1 antes de rodar o deploy.
+
+**Se aparecer "No Hardhat config file found":** você está na pasta errada. Use `cd rayls-qa-challenge` antes de rodar qualquer comando `npx hardhat ...`.
+
+---
+
+# Hardhat Boilerplate (original)
 
 This repository contains a sample project that you can use as the starting point
 for your Ethereum project. It's also a great fit for learning the basics of
